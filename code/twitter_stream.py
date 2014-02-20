@@ -1,3 +1,5 @@
+import sys
+
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -26,9 +28,12 @@ class StdOutListener(StreamListener):
 
     def on_data(self, data):
     	tweet =  GetTweets.get(data)
-        if tweet:
-            keywords = GetKeywords.get(tweet)
-            print keywords
+        if not tweet:
+            return
+
+        print tweet
+        keywords = GetKeywords.get(tweet)
+        print keywords
 
     def on_error(self, status):
         print status
@@ -36,11 +41,13 @@ class StdOutListener(StreamListener):
 
 if __name__ == '__main__':
 
+    if len(sys.argv) == 1:
+        exit()
+
     l = StdOutListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    stream.filter(track=['tech'], languages=['en'])
-
+    stream.filter(track=[sys.argv[1]], languages=['en'])
     
