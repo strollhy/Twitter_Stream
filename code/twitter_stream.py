@@ -32,7 +32,7 @@ class StdOutListener(StreamListener):
             return
 
         print tweet
-        keywords = GetKeywords.get(tweet)
+        keywords = GetKeywords.get(tweet, sys.argv[1])
         print keywords
 
     def on_error(self, status):
@@ -41,7 +41,7 @@ class StdOutListener(StreamListener):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 2:
         exit()
 
     l = StdOutListener()
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    stream.filter(track=[sys.argv[1]], languages=['en'])
+    stream.filter(track=[sys.argv[1], sys.argv[2]], languages=['en'])
     
