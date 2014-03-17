@@ -18,6 +18,8 @@ consumer_secret="2xZ3h1YKMspzApq9oy1yL4O6u3plNuFmXmBWbHx8"
 access_token="391111024-iUGWoFcYHfm0oyyWv7O0byZMcWFTenQyARMe2m0Z"
 access_token_secret="BQfZYNGTgWqxyZAb26SruzT5KjFAyhyeISjcmYL0Qd1KJ"
 
+c = 0.97
+
 class StdOutListener(StreamListener):
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
@@ -36,7 +38,10 @@ class StdOutListener(StreamListener):
         if not tweet:
             return
 
-        keywords = GetKeywords.get(tweet, '#tech')
+        keywords = GetKeywords.get(tweet, sys.argv[1])
+        if not keywords["words"]:
+            return
+
         print keywords
 
         # winnow
@@ -46,6 +51,11 @@ class StdOutListener(StreamListener):
 
         # Evalutation
         fact = keywords['label']
+        self.fp *= c
+        self.tp *= c
+        self.fn *= c
+        self.tn *= c
+
         if label > fact:
             self.fp += 1
 
@@ -70,8 +80,6 @@ class StdOutListener(StreamListener):
         print ">>>> Accuracy: %s,\t Precision: %s,\t Recall: %s" % (acc, pre, rec)
         print ">>>> List length: %s" % len(self.winnow.stack)
 
-
-
     def on_error(self, status):
         print status
 
@@ -87,7 +95,7 @@ def main():
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    stream.filter(track=[sys.argv[1], sys.argv[2]], languages=['en'])
+    stream.filter(track=sys.argv[1:], languages=['en'])
 
 if __name__ == '__main__':
     main()
