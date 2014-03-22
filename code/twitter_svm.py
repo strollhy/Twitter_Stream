@@ -20,6 +20,7 @@ access_token_secret="BQfZYNGTgWqxyZAb26SruzT5KjFAyhyeISjcmYL0Qd1KJ"
 
 c = 0.97
 
+
 class StdOutListener(StreamListener):
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
@@ -34,7 +35,7 @@ class StdOutListener(StreamListener):
         self.fn = 0.0
 
     def on_data(self, data):
-        tweet =  GetTweets.get(data)
+        tweet = GetTweets.get(data)
         if not tweet:
             return
 
@@ -68,7 +69,6 @@ class StdOutListener(StreamListener):
         else:
             self.fn += 1
 
-
         acc = (self.tp + self.fn)/(self.tp + self.fn + self.tn + self.fp + 1)
         pre = self.tp / (self.tp + self.fp + 1)
         rec = self.tp / (self.tp + self.fn + 1)
@@ -83,12 +83,13 @@ class StdOutListener(StreamListener):
     def on_error(self, status):
         print status
 
+
 ## main
 def main():
     if len(sys.argv) == 1:
         exit()
 
-    window = Winnow_Balance(1000)
+    window = BalancedWinnow(1000)
 
     l = StdOutListener(window)
     auth = OAuthHandler(consumer_key, consumer_secret)

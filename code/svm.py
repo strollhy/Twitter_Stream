@@ -5,7 +5,7 @@
 learning_rate = 2.0
 
 
-class SVM:
+class BalancedWinnow:
     def __init__(self, size):
         self.window_size = size
         self.stack = {}
