@@ -27,13 +27,14 @@ class StdOutListener(StreamListener):
         pass
 
     def on_data(self, data):
-        tweet =  GetTweets.get(data)
+        tweet = GetTweets.get(data)
         if not tweet:
             return
 
         print tweet
         keywords = GetKeywords.get(tweet, sys.argv[1])
-        print keywords
+        if not keywords['words']:
+            return
 
     def on_error(self, status):
         print status

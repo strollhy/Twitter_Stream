@@ -2,21 +2,21 @@ import re
 
 class GetKeywords:
 
-    def __init__(self, tag):
-        self.tag = tag
+    def __init__(self):
+        pass
 
     @staticmethod
     def get(tweet, tag):
-        if re.findall(tag, tweet):
-            label = 1
-        else:
-            label = 0
+        text = tweet
 
         # remove urls
         tweet = re.sub("http://.+? ", "", tweet)
         tweet = re.sub("http://.+", "", tweet)
         tweet = re.sub("https://.+? ", "", tweet)
         tweet = re.sub("https://.+", "", tweet)
+
+        # remove tag
+        tweet = re.sub(tag, "", tweet)
 
         # remove RT
         tweet = re.sub("RT", "", tweet)
@@ -26,10 +26,10 @@ class GetKeywords:
         tweet = re.sub("@.+? ", "", tweet)
 
         # remove hash tags
-        tweet = re.sub("#.+","", tweet)
+        # tweet = re.sub("#.+","", tweet)
 
         keywords = [w for w in re.findall("[a-zA-Z]+", tweet) if len(w) > 1]
-        return {'words': keywords, 'label': label}
+        return {'words': keywords, 'tag': tag, 'text': text}
 
 def main(tag):
     f = open("../data/tweets.txt")

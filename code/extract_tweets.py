@@ -9,7 +9,7 @@ class GetTweets:
     def get(content):
         content = json.loads(content)
         if "text" in content:
-            return (content["text"].encode('ascii', 'ignore').lower() + "\n\n")
+            return (content["text"].encode('ascii', 'ignore').lower()).strip()
 
     def test(self):
         f = open("../data/out.txt")

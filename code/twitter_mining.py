@@ -1,4 +1,5 @@
 import sys
+import time
 
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
@@ -7,96 +8,79 @@ from tweepy import Stream
 from extract_tweets import GetTweets
 from extract_keywords import GetKeywords
 from winnow import *
+from twitter_sink import TwitterSink
 
-# Go to http://dev.twitter.com and create an app.
-# The consumer key and secret will be generated for you after
-consumer_key="H67uY9pyjvuxWj4jQIUvA"
-consumer_secret="2xZ3h1YKMspzApq9oy1yL4O6u3plNuFmXmBWbHx8"
-
-# After the step above, you will be redirected to your app's page.
-# Create an access token under the the "Your access token" section
-access_token="391111024-iUGWoFcYHfm0oyyWv7O0byZMcWFTenQyARMe2m0Z"
-access_token_secret="BQfZYNGTgWqxyZAb26SruzT5KjFAyhyeISjcmYL0Qd1KJ"
 
 c = 0.97
+fp = 0
+tp = 0
+fn = 0
+tn = 0
 
+f = open("../data/out.csv", "w")
+f.close()
 
-class StdOutListener(StreamListener):
-    """ A listener handles tweets are the received from the stream.
-    This is a basic listener that just prints received tweets to stdout.
+def train(tup, winnow):
+    winnow.add(tup['words'])
+    label = winnow.predict(tup['words'])
+    winnow.learn(label, tup)
 
-    """
-    def __init__(self, winnow):
-        self.winnow = winnow
+    # Evalutation
+    global fp, tp, fn, tn
+    fact = tup["label"]
 
-        self.tp = 0.0
-        self.fp = 0.0
-        self.tn = 0.0
-        self.fn = 0.0
+    fp *= c
+    tp *= c
+    fn *= c
+    tn *= c
 
-    def on_data(self, data):
-        tweet = GetTweets.get(data)
-        if not tweet:
-            return
+    if label > fact:
+        fp += 1
 
-        keywords = GetKeywords.get(tweet, sys.argv[1])
-        if not keywords["words"]:
-            return
+    elif label < fact:
+        tn += 1
 
-        print keywords
+    elif label == 1:
+        tp += 1
 
-        # winnow
-        self.winnow.add(keywords['words'])
-        label = self.winnow.predict(keywords['words'])
-        self.winnow.learn(label, keywords)
+    else:
+        fn += 1
 
-        # Evalutation
-        fact = keywords['label']
-        self.fp *= c
-        self.tp *= c
-        self.fn *= c
-        self.tn *= c
+    acc = (tp + fn)/(tp + fn + tn + fp + 1)
+    pre = tp / (tp + fp + 1)
+    rec = tp / (tp + fn + 1)
 
-        if label > fact:
-            self.fp += 1
+    acc = int(acc * 100) / 100.0
+    pre = int(pre * 100) / 100.0
+    rec = int(rec * 100) / 100.0
 
-        elif label < fact:
-            self.tn += 1
+    print tup["text"]
+    print ">>>> Get %s but actually was %s" % (label, fact)
+    print ">>>> Accuracy: %s,\t Precision: %s,\t Recall: %s" % (acc, pre, rec)
+    print ">>>> List length: %s" % len(winnow.stack)
+    print
 
-        elif label == 1:
-            self.tp += 1
+    out = "%s,%s,%s\n" % (acc, pre, rec)
+    f = open("../data/out.csv", "a")
+    f.write(out)
+    f.close()
 
-        else:
-            self.fn += 1
-
-        acc = (self.tp + self.fn)/(self.tp + self.fn + self.tn + self.fp + 1)
-        pre = self.tp / (self.tp + self.fp + 1)
-        rec = self.tp / (self.tp + self.fn + 1)
-
-        acc = int(acc * 100) / 100.0
-        pre = int(pre * 100) / 100.0
-        rec = int(rec * 100) / 100.0
-        print ">>>> Get %s but actually was %s" % (label, fact)
-        print ">>>> Accuracy: %s,\t Precision: %s,\t Recall: %s" % (acc, pre, rec)
-        print ">>>> List length: %s" % len(self.winnow.stack)
-
-    def on_error(self, status):
-        print status
-
-
-## main
-def main():
-    if len(sys.argv) == 1:
-        exit()
-
-    window = BalancedWinnow(1000)
-
-    l = StdOutListener(window)
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-
-    stream = Stream(auth, l)
-    stream.filter(track=sys.argv[1:], languages=['en'])
 
 if __name__ == '__main__':
-    main()
+    sink = TwitterSink(["#tech", "#life"])
+    winnow = BalancedWinnow(1000)
+
+    s1, s2 = None, None
+
+    while 1:
+        # query each stream
+        s_1, s_2 = [s.cache for s in sink.streams]
+
+        # if there is update
+        if s_1 == s1 or s_2 == s2:
+            time.sleep(2)
+            continue
+
+        s1, s2 = s_1, s_2
+        train(s1, winnow)
+        train(s2, winnow)
