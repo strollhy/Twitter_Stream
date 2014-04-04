@@ -67,14 +67,17 @@ def train(tup, winnow):
 
 
 if __name__ == '__main__':
-    sink = TwitterSink(["#tech", "#life"])
+    sink = TwitterSink(["#finalfour", "life", "win"])
     winnow = BalancedWinnow(1000)
 
-    s1, s2 = None, None
+    s1, s2, s000 = None, None, None
 
     while 1:
         # query each stream
-        s_1, s_2 = [s.cache for s in sink.streams]
+        s_1, s_2, s_000 = [s.cache for s in sink.streams]
+
+        if s_000 and winnow.predict(s_000["words"]):
+            print "Tech tweets found:", s_000["text"]
 
         # if there is update
         if s_1 == s1 or s_2 == s2:
@@ -84,3 +87,4 @@ if __name__ == '__main__':
         s1, s2 = s_1, s_2
         train(s1, winnow)
         train(s2, winnow)
+

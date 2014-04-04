@@ -16,7 +16,7 @@ class BalancedWinnow:
                 self.stack[word] = 0.5
 
     def predict(self, words):
-        s = sum([self.stack[word] for word in words])
+        s = sum([self.stack[word] for word in words if word in self.stack])
         if s > len(words)/2:
             return 1
         else:
