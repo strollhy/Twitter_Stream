@@ -1,12 +1,5 @@
-import sys
 import time
 
-from tweepy.streaming import StreamListener
-from tweepy import OAuthHandler
-from tweepy import Stream
-
-from extract_tweets import GetTweets
-from extract_keywords import GetKeywords
 from winnow import *
 from twitter_sink import TwitterSink
 
@@ -19,6 +12,7 @@ tn = 0
 
 f = open("../data/out.csv", "w")
 f.close()
+
 
 def train(tup, winnow):
     winnow.add(tup['words'])
@@ -55,7 +49,8 @@ def train(tup, winnow):
     rec = int(rec * 100) / 100.0
 
     print tup["text"]
-    print ">>>> Get %s but actually was %s" % (label, fact)
+    print tup["words"]
+    print ">>>> Get %s but actually is %s" % (label, fact)
     print ">>>> Accuracy: %s,\t Precision: %s,\t Recall: %s" % (acc, pre, rec)
     print ">>>> List length: %s" % len(winnow.stack)
     print
@@ -67,21 +62,21 @@ def train(tup, winnow):
 
 
 if __name__ == '__main__':
-    sink = TwitterSink(["#finalfour", "life", "win"])
+    sink = TwitterSink(["#tech", "#life", "phone"])
     winnow = BalancedWinnow(1000)
 
     s1, s2, s000 = None, None, None
 
     while 1:
         # query each stream
-        s_1, s_2, s_000 = [s.cache for s in sink.streams]
+        s_1, s_2, s_000 = sink.stream.cache
 
         if s_000 and winnow.predict(s_000["words"]):
             print "Tech tweets found:", s_000["text"]
 
         # if there is update
         if s_1 == s1 or s_2 == s2:
-            time.sleep(2)
+            time.sleep(1)
             continue
 
         s1, s2 = s_1, s_2

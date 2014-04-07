@@ -24,10 +24,8 @@ class TwitterSink:
     """ Twitter stream sink that hosts multiple streams
     """
     def __init__(self, tags):
-        self.streams = []
-        for tag in tags:
-            self.streams.append(TwitterStream(tag, tags[0]))
-            self.streams[-1].start()
+        self.stream = TwitterStream(tags)
+        self.stream.start()
 
     def start_query(self):
         """ Start query on each twitter stream
@@ -37,7 +35,7 @@ class TwitterSink:
         s1, s2 = None, None
 
         while 1:
-            s_1, s_2 = [s.cache for s in self.streams]
+            s_1, s_2 = self.stream.cache
 
             # if there is update
             if s_1 == s1 or s_2 == s2:
@@ -53,11 +51,11 @@ class TwitterSink:
 class TwitterStream(threading.Thread):
     """ Twitter stream class
     """
-    def __init__(self, tag, correct_tag):
+    def __init__(self, tags):
         super(TwitterStream, self).__init__()
-        self.tag = tag
-        self.correct_tag = correct_tag
-        self.cache = None
+        self.tags = tags
+        self.correct_tag = tags[0]
+        self.cache = [None] * len(tags)
 
     def run(self):
         l = StdOutListener(self)
@@ -65,7 +63,7 @@ class TwitterStream(threading.Thread):
         auth.set_access_token(access_token, access_token_secret)
 
         stream = Stream(auth, l)
-        stream.filter(track=[self.tag], languages=['en'])
+        stream.filter(track=self.tags, languages=['en'])
 
 
 class StdOutListener(StreamListener):
@@ -81,16 +79,24 @@ class StdOutListener(StreamListener):
         if not tweet:
             return
 
-        keywords = GetKeywords.get(tweet, self.host.tag)
+        tag = self.host.tags[0]
+        indx = 0
+        for t in self.host.tags:
+            if t in tweet:
+                tag = t
+                break
+            indx += 1
+
+        keywords = GetKeywords.get(tweet, tag)
         if not keywords['words']:
             return
 
-        if self.host.tag == self.host.correct_tag:
+        if tag == self.host.correct_tag:
             keywords["label"] = 1
         else:
             keywords["label"] = 0
 
-        self.host.cache = keywords
+        self.host.cache[indx] = keywords
 
     def on_error(self, status):
         print status
