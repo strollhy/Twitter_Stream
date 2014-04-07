@@ -53,6 +53,7 @@ class TwitterStream(threading.Thread):
     """
     def __init__(self, tags):
         super(TwitterStream, self).__init__()
+        self.daemon = True
         self.tags = tags
         self.correct_tag = tags[0]
         self.cache = [None] * len(tags)
@@ -86,6 +87,8 @@ class StdOutListener(StreamListener):
                 tag = t
                 break
             indx += 1
+        indx = min(indx, len(self.host.tags)-1)
+
 
         keywords = GetKeywords.get(tweet, tag)
         if not keywords['words']:
@@ -96,7 +99,10 @@ class StdOutListener(StreamListener):
         else:
             keywords["label"] = 0
 
-        self.host.cache[indx] = keywords
+        try:
+            self.host.cache[indx] = keywords
+        except:
+            pass
 
     def on_error(self, status):
         print status
