@@ -57,6 +57,7 @@ class TwitterStream(threading.Thread):
         self.tags = tags
         self.correct_tag = tags[0]
         self.cache = [None] * len(tags)
+        self.getKeywords = GetKeywords()
 
     def run(self):
         l = StdOutListener(self)
@@ -90,7 +91,7 @@ class StdOutListener(StreamListener):
         indx = min(indx, len(self.host.tags)-1)
 
 
-        keywords = GetKeywords.get(tweet, tag)
+        keywords = self.host.getKeywords.get(tweet, tag)
         if not keywords['words']:
             return
 

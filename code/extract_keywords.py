@@ -3,10 +3,14 @@ import re
 class GetKeywords:
 
     def __init__(self):
-        pass
+        # Load stop words
+        self.stop = set([]) 
 
-    @staticmethod
-    def get(tweet, tag):
+        f = open('../data/english.stop.txt')
+        for line in f:
+            self.stop.add(line.strip())
+
+    def get(self, tweet, tag):
         text = tweet
 
         # remove urls
@@ -28,7 +32,7 @@ class GetKeywords:
         # remove hash tags
         # tweet = re.sub("#.+","", tweet)
 
-        keywords = [w for w in re.findall("[a-zA-Z]+", tweet) if len(w) > 1]
+        keywords = [w for w in re.findall("[a-zA-Z]+", tweet) if w not in self.stop]
         return {'words': keywords, 'tag': tag, 'text': text}
 
 def main(tag):
