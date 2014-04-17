@@ -2,34 +2,58 @@ import re
 
 class GetKeywords:
 
-	def __init__(self):
-		pass
+    def __init__(self):
+        # Load stop words
+        self.stop = set([]) 
 
-	@staticmethod
-	def get(tweet):
-		tweet = re.sub("http://.+? ", "", tweet)
-		tweet = re.sub("#[a-zA-Z]+","", tweet)
-		return re.findall("[a-zA-Z]+", tweet)
+        f = open('../data/english.stop.txt')
+        for line in f:
+            self.stop.add(line.strip())
 
-	def test(self, tag):
-		f = open("../data/tweets.txt")
-		out = open("../data/keywords.txt","w")
-		out = open("../data/keywords.txt","a")
+    def get(self, tweet, tag):
+        text = tweet
 
-		words = {}
+        # remove urls
+        tweet = re.sub("http://.+? ", "", tweet)
+        tweet = re.sub("http://.+", "", tweet)
+        tweet = re.sub("https://.+? ", "", tweet)
+        tweet = re.sub("https://.+", "", tweet)
 
-		for line in f:
-			line = re.sub("http://.+? ", "", line)
-			line = re.sub("#tech","", line)
+        # remove tag
+        tweet = re.sub(tag, "", tweet)
 
-			for word in re.findall("[a-zA-Z]+", line):
-				if word in words:
-					words[word] += 1
-				else:
-					words[word] = 1
+        # remove RT
+        tweet = re.sub("RT", "", tweet)
+        tweet = re.sub("rt", "", tweet)
 
-		out.write(words.__str__())
+        # remove @somebody
+        tweet = re.sub("@.+? ", "", tweet)
+
+        # remove hash tags
+        # tweet = re.sub("#.+","", tweet)
+
+        keywords = [w for w in re.findall("[a-zA-Z]+", tweet) if w not in self.stop]
+        return {'words': keywords, 'tag': tag, 'text': text}
+
+def main(tag):
+    f = open("../data/tweets.txt")
+    out = open("../data/keywords.txt","w")
+    out = open("../data/keywords.txt","a")
+
+    words = {}
+
+    for line in f:
+        line = re.sub("http://.+? ", "", line)
+        line = re.sub("#tech","", line)
+
+        for word in re.findall("[a-zA-Z]+", line):
+            if word in words:
+                words[word] += 1
+            else:
+                words[word] = 1
+
+    out.write(words.__str__())
 
 
 if __name__ == '__main__':
-	GetKeywords().test('tech')
+    main('tech')

@@ -27,13 +27,14 @@ class StdOutListener(StreamListener):
         pass
 
     def on_data(self, data):
-    	tweet =  GetTweets.get(data)
+        tweet = GetTweets.get(data)
         if not tweet:
             return
 
         print tweet
-        keywords = GetKeywords.get(tweet)
-        print keywords
+        keywords = GetKeywords.get(tweet, sys.argv[1])
+        if not keywords['words']:
+            return
 
     def on_error(self, status):
         print status
@@ -41,7 +42,7 @@ class StdOutListener(StreamListener):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 2:
         exit()
 
     l = StdOutListener()
@@ -49,5 +50,5 @@ if __name__ == '__main__':
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    stream.filter(track=[sys.argv[1]], languages=['en'])
+    stream.filter(track=[sys.argv[1], sys.argv[2]], languages=['en'])
     
