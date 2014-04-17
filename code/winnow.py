@@ -39,10 +39,6 @@ class BalancedWinnow:
 
                 self.stack[word][0] /= learning_rate
 
-                # if weight is too small, delete the word
-                # if self.stack[word] < 0.001:    # 1/2^10
-                #     del self.stack[word]
-
         # if true-negative, raise up the weight
         else:
             for word in keywords['words']:
