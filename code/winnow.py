@@ -13,10 +13,13 @@ class BalancedWinnow:
     def add(self, words):
         for word in words:
             if word not in self.stack:
-                self.stack[word] = 0.5
+                # set initial weights and count
+                self.stack[word] = [0.5, 1]
+            else:
+                self.stack[word][1] += 1
 
     def predict(self, words):
-        s = sum([self.stack[word] for word in words if word in self.stack])
+        s = sum([self.stack[word][0] for word in words if word in self.stack])
         if s > len(words)/2:
             return 1
         else:
@@ -34,7 +37,7 @@ class BalancedWinnow:
                 if word not in self.stack:
                     continue
 
-                self.stack[word] /= learning_rate
+                self.stack[word][0] /= learning_rate
 
                 # if weight is too small, delete the word
                 # if self.stack[word] < 0.001:    # 1/2^10
@@ -43,13 +46,14 @@ class BalancedWinnow:
         # if true-negative, raise up the weight
         else:
             for word in keywords['words']:
-                self.stack[word] *= learning_rate
+                self.stack[word][0] *= learning_rate
 
-        # # decay window
-        # for k in self.stack.keys():
-        #     self.stack[k] *= 0.95
-        #     if self.stack[k] < 0.001:
-        #         del self.stack[k]
+        # decay window 0.95^100 = 0.003
+        for w in self.stack.keys():
+            self.stack[w][1] *= 0.95
+            if self.stack[w][1] < 0.001:
+                print "=========== Remove word:", w
+                del self.stack[w]
 
 def main():
     pass
