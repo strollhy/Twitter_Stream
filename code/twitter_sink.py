@@ -11,13 +11,13 @@ from extract_keywords import GetKeywords
 
 # Go to http://dev.twitter.com and create an app.
 # The consumer key and secret will be generated for you after
-consumer_key="H67uY9pyjvuxWj4jQIUvA"
-consumer_secret="2xZ3h1YKMspzApq9oy1yL4O6u3plNuFmXmBWbHx8"
+consumer_key=""
+consumer_secret=""
 
 # After the step above, you will be redirected to your app's page.
 # Create an access token under the the "Your access token" section
-access_token="391111024-iUGWoFcYHfm0oyyWv7O0byZMcWFTenQyARMe2m0Z"
-access_token_secret="BQfZYNGTgWqxyZAb26SruzT5KjFAyhyeISjcmYL0Qd1KJ"
+access_token=""
+access_token_secret=""
 
 
 class TwitterSink:
